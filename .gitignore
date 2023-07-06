@@ -1,6 +1,12 @@
 # Local .terraform directories
 **/.terraform/*
 
+# .lock.hcl files
+*.lock.hcl
+
+# .pem files
+*.pem
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
