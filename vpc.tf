@@ -40,18 +40,6 @@ resource "aws_subnet" "private_subnet" {
   }
 }
 
-# dynamic list of the public subnets created above
-data "aws_subnet_ids" "public_subnet_ids" {
-  depends_on = ["aws_subnet.public_subnet"]
-  vpc_id     = aws_vpc.main_vpc.id
-}
-
-# dynamic list of the private subnets created above
-data "aws_subnet_ids" "private_subnet_ids" {
-  depends_on = ["aws_subnet.private_subnet"]
-  vpc_id     = aws_vpc.main_vpc.id
-}
-
 # route table: public
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main_vpc.id
@@ -76,15 +64,15 @@ resource "aws_main_route_table_association" "public_mrta" {
 # route table association with public subnets
 resource "aws_route_table_association" "public_rt_association" {
   count          = length(var.azs)
-  subnet_id      = element(data.aws_subnet_ids.public_subnet_ids.ids, count.index)
+  subnet_id      = element(aws_subnet.public_subnet.*.id, count.index)
   route_table_id = aws_route_table.public_rt.id
 }
 
 # create elastic IP (EIP) to assign it the NAT Gateway 
 resource "aws_eip" "public_eip" {
   count      = length(var.azs)
-  vpc        = true
-  depends_on = ["aws_internet_gateway.main_igw"]
+  domain     = "vpc"
+  depends_on = [aws_internet_gateway.main_igw]
 }
 
 # create NAT Gateways: public
@@ -92,14 +80,14 @@ resource "aws_nat_gateway" "public_ng" {
   count         = length(var.azs)
   allocation_id = element(aws_eip.public_eip.*.id, count.index)
   subnet_id     = element(aws_subnet.public_subnet.*.id, count.index)
-  depends_on    = ["aws_internet_gateway.main_igw"]
+  depends_on    = [aws_internet_gateway.main_igw]
 }
 
 # for each of the private ranges, create a "private" route table.
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main_vpc.id
   count  = length(var.azs)
-  tags {
+  tags = {
     Name = "private_subnet_route_table_${count.index + 1}"
   }
 }
@@ -109,6 +97,6 @@ resource "aws_route" "private_nat_gateway_route" {
   count                  = length(var.azs)
   route_table_id         = element(aws_route_table.private_rt.*.id, count.index)
   destination_cidr_block = "0.0.0.0/0"
-  depends_on             = ["aws_route_table.private_rt"]
+  depends_on             = [aws_route_table.private_rt]
   nat_gateway_id         = element(aws_nat_gateway.public_ng.*.id, count.index)
 }

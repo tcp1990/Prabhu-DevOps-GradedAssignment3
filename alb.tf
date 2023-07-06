@@ -38,24 +38,27 @@ resource "aws_security_group" "alb_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags {
+  tags = {
     Name = "alb-security-group"
   }
 }
 
 # using ALB - instances in private subnets
-resource "aws_alb" "main_alb" {
-  name            = "main-alb"
-  security_groups = ["${aws_security_group.alb_sg.id}"]
-  subnets         = ["${aws_subnet.private_subnet.*.id}"]
-  tags {
+resource "aws_lb" "main_alb" {
+  name                       = "main-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb_sg.id]
+  subnets                    = [for subnet in aws_subnet.private_subnet : subnet.id]
+  enable_deletion_protection = true
+  tags = {
     Name = "main-alb"
   }
 }
 
 # listener
 resource "aws_alb_listener" "alb_listener" {
-  load_balancer_arn = aws_alb.main_alb.arn
+  load_balancer_arn = aws_lb.main_alb.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -81,7 +84,7 @@ resource "aws_alb_target_group" "alb_tg" {
 resource "aws_launch_configuration" "main_lc" {
   image_id        = var.webservers_ami
   instance_type   = var.instance_type
-  security_groups = ["${aws_security_group.webserver_sg.id}"]
+  security_groups = [aws_security_group.webserver_sg.id]
   user_data       = file("user_data.sh")
   lifecycle {
     create_before_destroy = true
@@ -92,7 +95,7 @@ resource "aws_launch_configuration" "main_lc" {
 resource "aws_autoscaling_group" "main_asg" {
   name                 = "main-autoscaling-group"
   launch_configuration = aws_launch_configuration.main_lc.id
-  vpc_zone_identifier  = ["${aws_subnet.private_subnet.*.id}"]
+  vpc_zone_identifier  = [for subnet in aws_subnet.private_subnet : subnet.id]
   desired_capacity     = 3
   max_size             = 6
   min_size             = 1
@@ -106,13 +109,13 @@ resource "aws_autoscaling_group" "main_asg" {
 }
 
 # autoscaling attachment  
-resource "aws_autoscaling_attachment" "asg_attachment" { 
-  alb_target_group_arn   = "${aws_alb_target_group.alb_tg.arn}"
-  autoscaling_group_name = "${aws_autoscaling_group.main_asg.id}"
+resource "aws_autoscaling_attachment" "asg_attachment" {
+  lb_target_group_arn    = aws_alb_target_group.alb_tg.arn
+  autoscaling_group_name = aws_autoscaling_group.main_asg.id
 }
 
 
 # ALB DNS is generated dynamically, return URL so that it can be used
 output "url" {
-  value = "http://${aws_alb.main_alb.dns_name}/"
+  value = "http://${aws_lb.main_alb.dns_name}/"
 }
