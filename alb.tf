@@ -80,12 +80,18 @@ resource "aws_alb_target_group" "alb_tg" {
   }
 }
 
-# creating launch configuration
-resource "aws_launch_configuration" "main_lc" {
-  image_id        = var.webservers_ami
-  instance_type   = var.instance_type
-  security_groups = [aws_security_group.webserver_sg.id]
-  user_data       = file("user_data.sh")
+# creating launch template
+resource "aws_launch_template" "launch_template" {
+  name          = "launch_template"
+  image_id      = var.webservers_ami
+  instance_type = var.instance_type
+  key_name      = "DemoKeyPair"
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.webserver_sg.id]
+    delete_on_termination       = true
+  }
+  user_data = filebase64("user_data.sh")
   lifecycle {
     create_before_destroy = true
   }
@@ -93,13 +99,17 @@ resource "aws_launch_configuration" "main_lc" {
 
 # creating autoscaling group
 resource "aws_autoscaling_group" "main_asg" {
-  name                 = "main-autoscaling-group"
-  launch_configuration = aws_launch_configuration.main_lc.id
-  vpc_zone_identifier  = [for subnet in aws_subnet.private_subnet : subnet.id]
-  desired_capacity     = 3
-  max_size             = 6
-  min_size             = 1
-  health_check_type    = "ELB"
+  name                = "main-autoscaling-group"
+  vpc_zone_identifier = [for subnet in aws_subnet.private_subnet : subnet.id]
+  desired_capacity    = 3
+  max_size            = 6
+  min_size            = 1
+  health_check_type   = "ELB"
+
+  launch_template {
+    id      = aws_launch_template.launch_template.id
+    version = aws_launch_template.launch_template.latest_version
+  }
 
   tag {
     key                 = "Name"
