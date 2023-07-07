@@ -1,29 +1,43 @@
 variable "project" {
-  default = "terraform-ga"
+  description = "project"
+  type        = string
+  default     = "terraform-ga"
 }
 
 variable "key_name" {
-  default = "DemoKeyPair"
+  description = "key_name"
+  type        = string
+  default     = "DemoKeyPair"
 }
 
 variable "aws_region" {
-  default = "us-east-1"
+  description = "aws_region"
+  type        = string
+  default     = "us-east-1"
 }
 
 variable "instance_type" {
-  default = "t2.micro"
+  description = "instance_type"
+  type        = string
+  default     = "t2.micro"
 }
 
 variable "vpc_cidr_block" {
-  default = "10.0.0.0/16"
+  description = "vpc_cidr_block"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnets_cidr" {
-  default = ["10.0.0.0/24", "10.0.2.0/24", "10.0.4.0/24"]
+  description = "public_subnets_cidr"
+  type        = list(any)
+  default     = ["10.0.0.0/24", "10.0.2.0/24", "10.0.4.0/24"]
 }
 
 variable "azs" {
-  default = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  description = "azs"
+  type        = list(any)
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
 
 variable "webservers_ami" {
@@ -33,31 +47,45 @@ variable "webservers_ami" {
 }
 
 variable "max_size" {
-  default = 6
+  description = "max_size"
+  type        = number
+  default     = 6
 }
 
 variable "min_size" {
-  default = 3
+  description = "min_size"
+  type        = number
+  default     = 3
 }
 
 variable "desired_capacity" {
-  default = 3
+  description = "desired_capacity"
+  type        = number
+  default     = 3
 }
 
 variable "health_check_grace_period" {
-  default = 300
+  description = "health_check_grace_period"
+  type        = number
+  default     = 300
 }
 
 variable "asg_health_check_type" {
-  default = "ELB" #"ELB" or default EC2
+  description = "asg_health_check_type"
+  type        = string
+  default     = "ELB" #"ELB" or default EC2
 }
 
 variable "load_balancer_type" {
-  default = "application"
+  description = "load_balancer_type"
+  type        = string
+  default     = "application"
 }
 
 variable "enable_deletion_protection" {
-  default = false
+  description = "enable_deletion_protection"
+  type        = bool
+  default     = false
 }
 
 variable "lb_target_port" {
