@@ -29,7 +29,7 @@ variable "azs" {
 variable "webservers_ami" {
   description = "webservers_ami"
   type        = string
-  default     = "ami-053b0d53c279acc90"
+  default     = "ami-06ca3ca175f37dd66" #Unbuntu - "ami-053b0d53c279acc90" || AmazonLinux - "ami-06ca3ca175f37dd66"
 }
 
 variable "max_size" {

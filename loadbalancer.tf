@@ -58,4 +58,6 @@ resource "aws_lb_target_group_attachment" "this" {
 # autoscaling attachment  
 resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.this.id
+  lb_target_group_arn    = aws_lb_target_group.this.arn
+  #elb = aws_lb.this.id
 }
