@@ -41,8 +41,8 @@ resource "aws_autoscaling_group" "this" {
   health_check_grace_period = var.health_check_grace_period
   health_check_type         = var.asg_health_check_type #"ELB" or default EC2
   #availability_zones = var.availability_zones #["us-east-1a"]
-  vpc_zone_identifier = [for subnet in aws_subnet.private_subnet : subnet.id]
-  #target_group_arns   = [module.aws_lb.lb_tg_arn] #var.target_group_arns
+  vpc_zone_identifier = [for subnet in aws_subnet.public_subnet : subnet.id]
+  target_group_arns   = [try(aws_lb_target_group.this.arn, "")] #var.target_group_arns
 
   enabled_metrics = [
     "GroupMinSize",

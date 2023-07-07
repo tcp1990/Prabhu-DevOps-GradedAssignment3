@@ -28,18 +28,6 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
-# subnets : private
-resource "aws_subnet" "private_subnet" {
-  count                   = length(var.azs)
-  vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = element(var.private_subnets_cidr, count.index)
-  availability_zone       = element(var.azs, count.index)
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "subnet-priv-${count.index + 1}"
-  }
-}
-
 # route table: public
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main_vpc.id
@@ -81,22 +69,4 @@ resource "aws_nat_gateway" "public_ng" {
   allocation_id = element(aws_eip.public_eip.*.id, count.index)
   subnet_id     = element(aws_subnet.public_subnet.*.id, count.index)
   depends_on    = [aws_internet_gateway.main_igw]
-}
-
-# for each of the private ranges, create a "private" route table.
-resource "aws_route_table" "private_rt" {
-  vpc_id = aws_vpc.main_vpc.id
-  count  = length(var.azs)
-  tags = {
-    Name = "private_subnet_route_table_${count.index + 1}"
-  }
-}
-
-# add a nat gateway to each private subnet's route table
-resource "aws_route" "private_nat_gateway_route" {
-  count                  = length(var.azs)
-  route_table_id         = element(aws_route_table.private_rt.*.id, count.index)
-  destination_cidr_block = "0.0.0.0/0"
-  depends_on             = [aws_route_table.private_rt]
-  nat_gateway_id         = element(aws_nat_gateway.public_ng.*.id, count.index)
 }
