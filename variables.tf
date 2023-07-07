@@ -27,7 +27,9 @@ variable "azs" {
 }
 
 variable "webservers_ami" {
-  default = "ami-053b0d53c279acc90"
+  description = "webservers_ami"
+  type        = string
+  default     = "ami-053b0d53c279acc90"
 }
 
 variable "max_size" {
@@ -73,7 +75,7 @@ variable "lb_protocol" {
 variable "lb_target_type" {
   description = "Target type ip (ALB/NLB), instance (Autosaling group)"
   type        = string
-  default     = "ip"
+  default     = "instance"
 }
 
 variable "lb_listener_port" {
@@ -88,12 +90,6 @@ variable "lb_listener_protocol" {
   default     = "HTTP"
 }
 
-variable "lb_target_tags_map" {
-  description = "Tag map for the LB target resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "tags" {
-  default     = {}
+  default = {}
 }

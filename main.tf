@@ -11,10 +11,22 @@ provider "aws" {
   region = var.aws_region
 }
 
+locals {
+  tags = {
+    Project     = var.project
+    CreatedOn   = timestamp()
+    Environment = terraform.workspace
+  }
+}
+
 # Filter to fetch multiple instances : aws_instances
 data "aws_instances" "this" {
   filter {
-    name   = "tag:${var.lb_target_tags_map["name"]}"
-    values = ["${var.lb_target_tags_map["value"]}"]
+    name   = "image-id"
+    values = [var.webservers_ami]
   }
+  # filter {
+  #   name   = "tag:Name"
+  #   values = ["instance-name-tag"]
+  # }
 }

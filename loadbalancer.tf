@@ -25,10 +25,14 @@ resource "aws_lb_target_group" "this" {
   tags        = merge({ "Name" = "${var.project}-lb-tg" }, var.tags)
   depends_on  = [aws_lb.this]
 
-#   health_check {
-#     path = "/"
-#     port = 80
-#   }
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  #   health_check {
+  #     path = "/"
+  #     port = 80
+  #   }
 }
 
 resource "aws_lb_listener" "this" {
@@ -53,10 +57,5 @@ resource "aws_lb_target_group_attachment" "this" {
 
 # autoscaling attachment  
 resource "aws_autoscaling_attachment" "asg_attachment" {
-  autoscaling_group_name = aws_autoscaling_group.main_asg.id
-}
-
-# ALB DNS is generated dynamically, return URL so that it can be used
-output "url" {
-  value = "http://${aws_lb.this.dns_name}/"
+  autoscaling_group_name = aws_autoscaling_group.this.id
 }

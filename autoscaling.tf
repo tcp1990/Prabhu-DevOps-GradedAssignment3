@@ -58,7 +58,7 @@ resource "aws_autoscaling_group" "this" {
     id      = aws_launch_template.this.id
     version = aws_launch_template.this.latest_version #"$Latest"
   }
-  depends_on = [module.aws_lb]
+  depends_on = [aws_lb_target_group.this]
 
   # tag {
   #   key                 = "Name"
